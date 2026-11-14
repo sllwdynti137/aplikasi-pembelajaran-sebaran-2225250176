@@ -1,0 +1,7 @@
+{
+  "name": "sebaran-app",
+  "version": "2.0.0",
+  "description": "Aplikasi belajar jangkauan dan kuartil untuk siswa SMP kelas IX",
+  "scripts": { "start": "npx serve ." },
+  "license": "MIT"
+}

@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Sebaran: Jangkauan dan Kuartil</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@600;800&family=Nunito+Sans:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#FFF3E0;--card:#FFFAF1;--ink:#7A1F33;--on:#FFF1D6;--pk:#FF8FB1;--pk2:#FFD1DC;--hot:#E8336D;--line:#F5C6D2;--ok:#1F7A4D;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#3A0F1C;--card:#4A1626;--ink:#FFF1D6;--on:#3A0F1C;--line:#7A2A40;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#3A0F1C;--card:#4A1626;--ink:#FFF1D6;--on:#3A0F1C;--line:#7A2A40;color-scheme:dark}
+*{box-sizing:border-box}html,body{margin:0}html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{background:var(--bg);color:var(--ink);font:16px/1.55 "Nunito Sans",system-ui,sans-serif;min-height:100vh}
+h1,h2,h3{font-family:Fraunces,Georgia,serif;line-height:1.15;margin:0 0 .4em}h1{font-size:2rem;font-weight:800}h2{font-size:1.3rem}h3{font-size:1.1rem}
+.wrap{max-width:560px;margin:0 auto;padding:0 16px 90px}
+header{display:flex;justify-content:space-between;align-items:center;padding:14px 0}
+.brand{font:800 1.3rem Fraunces,Georgia,serif}
+button{font:inherit;cursor:pointer}
+.ghost{background:none;border:2px solid var(--pk);color:var(--ink);border-radius:999px;padding:6px 12px;font-size:.85rem;font-weight:700}
+.btn{background:var(--ink);color:var(--on);border:0;border-radius:14px;padding:12px 18px;font-weight:700}
+.btn:disabled{opacity:.4}.btn.pk{background:var(--pk);color:#7A1F33}
+:is(.btn,.ghost,.op,.chip,nav button,input,textarea):focus-visible{outline:3px solid var(--hot);outline-offset:2px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+#stage{position:relative;height:290px;border-radius:24px;overflow:hidden;background:radial-gradient(circle at 50% 25%,#FFF1D6,#FFC2D4 80%);border:3px solid var(--pk);touch-action:pan-y;margin-bottom:14px;display:none}
+#stage canvas{position:absolute;inset:0;width:100%;height:100%}
+#mas{position:absolute;left:8px;right:8px;bottom:4px;z-index:2;pointer-events:none;display:flex;align-items:flex-end;gap:4px}
+#bub{background:#FFF1D6;color:#7A1F33;border:2px solid #FF8FB1;border-radius:14px 14px 14px 4px;padding:6px 10px;font-size:.8rem;font-weight:700;max-width:62%;margin-bottom:46px}
+.card{background:var(--card);border:2px solid var(--line);border-radius:18px;padding:16px;margin-bottom:12px}
+.card.def{border-left:8px solid var(--pk)}
+.data{font:700 1.05rem Fraunces,Georgia,serif;word-spacing:.15em}
+.tag{display:inline-block;border-radius:8px;padding:1px 9px;font-weight:700;background:var(--pk2);color:#7A1F33}
+.tag.m{background:var(--hot);color:#FFF1D6}
+.fm{background:#FFF1D6;color:#7A1F33;border-radius:10px;padding:6px 10px;margin-top:8px;font-weight:700}
+.chip{border:2px solid var(--pk);background:none;color:var(--ink);border-radius:999px;padding:6px 14px;font-weight:700}
+.chip.on{background:var(--pk);color:#7A1F33}
+.dots{display:flex;gap:6px;margin-bottom:10px}.dots i{flex:1;height:7px;border-radius:4px;background:var(--line)}.dots i.on{background:var(--hot)}
+.bar{height:10px;border-radius:5px;background:var(--line);margin-bottom:10px;overflow:hidden}.bar b{display:block;height:100%;background:linear-gradient(90deg,var(--pk),var(--hot));transition:width .5s}
+.op{display:block;width:100%;text-align:left;padding:12px 14px;border:2px solid var(--line);border-radius:14px;background:var(--card);color:var(--ink);margin:8px 0;font-weight:700}
+.op.sel{border-color:var(--hot);background:var(--pk2);color:#7A1F33}
+.op.right{background:#C9F2DC;border-color:#1F7A4D;color:#0F4A2C;opacity:1}
+.op.wrong{background:#FFD6D2;border-color:#B3261E;color:#7A1212;opacity:1;animation:shake .4s}
+.gd{border-color:#1F7A4D}.bd{border-color:var(--hot)}
+.stars{font-size:2.4rem;color:var(--hot);letter-spacing:.1em}
+.diag{width:100%;display:block;background:#FFF1D6;border:2px solid var(--pk);border-radius:16px;margin-bottom:12px}
+.diag .in{animation:pop .6s ease-out both;transform-box:fill-box;transform-origin:center}
+.diag text{fill:#7A1F33;font:700 9px "Nunito Sans",sans-serif;text-anchor:middle}
+nav{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:2px solid var(--pk);padding:6px 8px calc(6px + env(safe-area-inset-bottom,0px));display:flex;justify-content:center;gap:4px}
+nav button{flex:1;max-width:130px;background:none;border:0;color:var(--ink);padding:10px 4px;border-radius:12px;font-weight:700;font-size:.85rem}
+nav button.on{background:var(--pk);color:#7A1F33}
+#login{position:fixed;inset:0;z-index:20;background:linear-gradient(160deg,#FFB3C7,#FFF1D6);color:#7A1F33;display:flex;flex-direction:column;justify-content:center;padding:28px}
+#login .in{max-width:420px;width:100%;margin:0 auto;text-align:center}
+#login input{width:100%;font:700 1.3rem "Nunito Sans",sans-serif;text-align:center;padding:12px;border-radius:14px;border:3px solid #FF8FB1;background:#FFFAF1;color:#7A1F33}
+#login .btn{width:100%;margin-top:12px;background:#7A1F33;color:#FFF1D6}
+.stu{width:92px;display:block}.big .stu{width:150px;margin:0 auto}
+.bob{animation:bob 2s ease-in-out infinite;transform-origin:60px 100px}
+.eyes{transform-origin:60px 50px;animation:blink 4s infinite}
+.pen{transform-origin:78px 88px;animation:wr .45s ease-in-out infinite alternate}
+.sp{fill:#FF4D8D;transform-box:fill-box;transform-origin:center;animation:tw 1.6s ease-in-out infinite}.sp:nth-of-type(2){animation-delay:.5s}.sp:nth-of-type(3){animation-delay:1s}
+.fbs{display:flex;align-items:flex-end;justify-content:center;gap:7px;height:50px;margin:6px 0}
+.fbs i{width:18px;height:50px;border-radius:6px 6px 0 0;background:#FF8FB1;transform-origin:bottom;animation:dance 1.3s ease-in-out infinite}
+.fbs i:nth-child(2n){background:#FFF1D6}.fbs i:nth-child(2){animation-delay:.15s}.fbs i:nth-child(3){animation-delay:.3s}.fbs i:nth-child(4){animation-delay:.45s}.fbs i:nth-child(5){animation-delay:.6s}.fbs i:nth-child(6){animation-delay:.75s}.fbs i:nth-child(7){animation-delay:.9s}
+.pop{animation:pop .45s ease-out}
+@keyframes pop{0%{transform:scale(.8);opacity:0}70%{transform:scale(1.04)}100%{transform:scale(1);opacity:1}}
+@keyframes bob{50%{transform:translateY(-3px) rotate(-1.5deg)}}
+@keyframes blink{0%,92%,100%{transform:scaleY(1)}95%{transform:scaleY(.1)}}
+@keyframes wr{to{transform:rotate(-16deg) translateX(-4px)}}
+@keyframes tw{50%{opacity:.2;transform:scale(.5)}}
+@keyframes dance{0%,100%{transform:scaleY(.35)}50%{transform:scaleY(1)}}
+@keyframes shake{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+<div id="login"><div class="in">
+ <div class="big" id="lmas"></div><div class="fbs"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+ <h1>Sebaran</h1><p>Belajar jangkauan dan kuartil dengan balok 3D. Siapa namamu?</p>
+ <input id="nama" type="text" maxlength="20" placeholder="Contoh: Sela" aria-label="Nama siswa" autocomplete="off">
+ <div id="lerr" style="min-height:1.5em;font-weight:700"></div>
+ <button class="btn" onclick="masuk()">Masuk dan putar musik</button>
+</div></div>
+<div class="wrap">
+ <header><span class="brand">Sebaran</span><span class="row"><button class="ghost" id="mbtn" onclick="musik()">Musik: mati</button><button class="ghost" onclick="keluar()">Keluar</button></span></header>
+ <div id="stage" aria-label="Diagram batang 3D. Seret untuk memutar."><div id="mas"><div id="mc"></div><div id="bub">Halo!</div></div></div>
+ <main id="view"></main>
+</div>
+<nav id="nav"></nav>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+const $=s=>document.querySelector(s);
+const f=x=>String(+x.toFixed(2)).replace('.',',');
+const med=a=>{const n=a.length,m=n>>1;return n%2?a[m]:(a[m-1]+a[m])/2};
+const mi=(a,L)=>L%2?[a+(L-1)/2]:[a+L/2-1,a+L/2];
+function st(d){const s=[...d].sort((a,b)=>a-b),n=s.length,h=n>>1;return{s,n,h,min:s[0],max:s[n-1],R:s[n-1]-s[0],q2:med(s),q1:med(s.slice(0,h)),q3:med(s.slice(n-h)),lo:s.slice(0,h),up:s.slice(n-h)}}
+const shuf=a=>{a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a};
+const rnd=(n,lo,hi)=>Array.from({length:n},()=>lo+(Math.random()*(hi-lo+1)|0));
+let user=null,P={ok:0,tot:0,lit:null},tab='home';
+const key=()=>'sebaran:'+user.toLowerCase();
+const sv=()=>{try{localStorage.setItem(key(),JSON.stringify(P))}catch(e){}};
+const ld=()=>{try{P=JSON.parse(localStorage.getItem(key()))||P}catch(e){}};
+
+/* Musik ceria: C-G-Am-F, 126 bpm */
+let ac,master,on=false,nxt=0,stp=0,tmr;
+const CH=[[48,[60,64,67],[76,0,79,76,72,0,76,79]],[43,[59,62,67],[74,0,79,74,71,0,74,79]],[45,[60,64,69],[72,0,76,72,69,0,72,76]],[41,[60,65,69],[72,0,77,72,69,0,72,77]]];
+const hz=m=>440*Math.pow(2,(m-69)/12);
+function nt(m,t,d,ty,g){const o=ac.createOscillator(),v=ac.createGain();o.type=ty;o.frequency.value=hz(m);v.gain.setValueAtTime(0,t);v.gain.linearRampToValueAtTime(g,t+.015);v.gain.exponentialRampToValueAtTime(.0001,t+d);o.connect(v);v.connect(master);o.start(t);o.stop(t+d+.05)}
+function sched(){while(nxt<ac.currentTime+.5){const c=CH[(stp>>3)&3],k=stp&7;
+ if(k%4===0)nt(c[0],nxt,.4,'triangle',.16);
+ if(k%4===2)c[1].forEach(m=>nt(m,nxt,.18,'sine',.035));
+ if(c[2][k]){nt(c[2][k],nxt,.3,'triangle',.08);nt(c[2][k]+12,nxt,.15,'sine',.025)}
+ nxt+=.238;stp++}}
+function musik(force){if(!ac){ac=new (window.AudioContext||window.webkitAudioContext)();master=ac.createGain();master.gain.value=.6;master.connect(ac.destination)}
+ on=force===true?true:!on;
+ if(on){ac.resume();nxt=ac.currentTime+.1;clearInterval(tmr);tmr=setInterval(sched,200)}else{clearInterval(tmr);ac.suspend()}
+ $('#mbtn').textContent='Musik: '+(on?'nyala':'mati')}
+
+/* Anak sekolah belajar (SVG animasi) */
+const STU='<svg viewBox="0 0 120 112" class="stu" aria-hidden="true"><g class="bob"><path d="M30 112V88q0-16 30-16t30 16v24z" fill="#FFF1D6" stroke="#E8336D" stroke-width="2"/><path d="M50 74l10 11 10-11z" fill="#FF8FB1"/><circle cx="60" cy="46" r="24" fill="#FFD9B8"/><path d="M36 46q0-28 24-28t24 28q-8-14-24-14t-24 14z" fill="#7A1F33"/><circle cx="87" cy="30" r="7" fill="#E8336D"/><circle cx="80" cy="30" r="5" fill="#FF8FB1"/><g class="eyes"><circle cx="51" cy="50" r="3.4" fill="#3A1219"/><circle cx="69" cy="50" r="3.4" fill="#3A1219"/></g><circle cx="45" cy="58" r="4" fill="#FF8FB1" opacity=".8"/><circle cx="75" cy="58" r="4" fill="#FF8FB1" opacity=".8"/><path d="M54 60q6 6 12 0" stroke="#7A1F33" stroke-width="2.4" fill="none" stroke-linecap="round"/></g><rect x="6" y="90" width="108" height="8" rx="4" fill="#FF8FB1"/><rect x="14" y="98" width="6" height="14" fill="#E8336D"/><rect x="100" y="98" width="6" height="14" fill="#E8336D"/><path d="M24 92L58 83V94L24 95z" fill="#FFF1D6" stroke="#E8336D" stroke-width="1.5"/><path d="M96 92L62 83V94L96 95z" fill="#FFF1D6" stroke="#E8336D" stroke-width="1.5"/><g class="pen"><rect x="76" y="68" width="4" height="20" rx="2" fill="#FFB400" transform="rotate(18 78 88)"/><circle cx="78" cy="88" r="4" fill="#FFD9B8"/></g><text class="sp" x="12" y="30" font-size="14">✦</text><text class="sp" x="100" y="20" font-size="12">✦</text><text class="sp" x="96" y="60" font-size="10">♥</text></svg>';
+function say(t){const b=$('#bub');b.textContent=t;b.classList.remove('pop');void b.offsetWidth;b.classList.add('pop')}
+function confetti(){if(matchMedia('(prefers-reduced-motion:reduce)').matches)return;const C=['#E8336D','#FFF1D6','#FF8FB1','#FFD1DC','#FFB400'];for(let i=0;i<40;i++){const e=document.createElement('i');e.style.cssText='position:fixed;z-index:30;top:-12px;left:'+Math.random()*100+'vw;width:9px;height:13px;border-radius:3px;pointer-events:none;background:'+C[i%5];document.body.appendChild(e);e.animate([{transform:'translate(0,0) rotate(0)',opacity:1},{transform:'translate('+(Math.random()*160-80)+'px,'+(innerHeight+30)+'px) rotate('+(Math.random()*720)+'deg)',opacity:.9}],{duration:1600+Math.random()*1400,easing:'ease-in',delay:Math.random()*300}).onfinish=()=>e.remove()}}
+
+/* Adegan 3D */
+const stage=$('#stage');
+const R=new THREE.WebGLRenderer({antialias:true,alpha:true});R.setPixelRatio(Math.min(devicePixelRatio,2));stage.appendChild(R.domElement);
+const sc=new THREE.Scene(),cam=new THREE.PerspectiveCamera(40,1,.1,100);cam.position.set(0,5,14);cam.lookAt(0,1.6,0);
+sc.add(new THREE.AmbientLight(0xffffff,.85));const dl=new THREE.DirectionalLight(0xffffff,.7);dl.position.set(4,9,7);sc.add(dl);
+const grp=new THREE.Group();sc.add(grp);
+const fl=new THREE.Mesh(new THREE.CylinderGeometry(7.2,7.4,.3,64),new THREE.MeshStandardMaterial({color:0xFF9DB8,roughness:.5}));fl.position.y=-.15;grp.add(fl);
+const rim=new THREE.Mesh(new THREE.TorusGeometry(7.3,.07,8,64),new THREE.MeshBasicMaterial({color:0xFFF1D6}));rim.rotation.x=Math.PI/2;grp.add(rim);
+const orbs=Array.from({length:16},(_,i)=>{const m=new THREE.Mesh(new THREE.SphereGeometry(.14+Math.random()*.1,12,12),new THREE.MeshStandardMaterial({color:i%2?0xFFF1D6:0xFF6F9C}));m.userData={a:Math.random()*6.28,r:5+Math.random()*2.5,y:3+Math.random()*3,s:.3+Math.random()*.5};grp.add(m);return m});
+let bars=[];
+function badge(v){const c=document.createElement('canvas');c.width=c.height=64;const x=c.getContext('2d');x.fillStyle='#7A1F33';x.beginPath();x.arc(32,32,29,0,7);x.fill();x.fillStyle='#FFF1D6';x.font='bold 30px sans-serif';x.textAlign='center';x.textBaseline='middle';x.fillText(v,32,34);const s=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(c),depthTest:false}));s.scale.set(.8,.8,1);return s}
+function setData(d){bars.forEach(b=>{grp.remove(b.m);grp.remove(b.s)});const mx=Math.max(...d),idx=d.map((v,i)=>i).sort((a,b)=>d[a]-d[b]||a-b),rank=[];idx.forEach((i,k)=>rank[i]=k);
+ bars=d.map((v,i)=>{const m=new THREE.Mesh(new THREE.BoxGeometry(1,1,1),new THREE.MeshStandardMaterial({color:0xFFE3B8,roughness:.35}));const s=badge(v);grp.add(m,s);return{v,i,m,s,h:v/mx*4,r:rank[i],x:null}});scene(0)}
+function scene(step){const n=bars.length,h=n>>1,sp=Math.min(1.2,11/n),M=new Set(step>=2?mi(0,n):[]),Q=new Set(step>=3?[...mi(0,h),...mi(n-h,h)]:[]),E=new Set(step>=4?[0,n-1]:[]);
+ bars.forEach(b=>{const slot=step===0?b.i:b.r;b.tx=(slot-(n-1)/2)*sp;if(b.x===null){b.m.position.x=b.s.position.x=b.tx;b.x=1}
+  const w=sp*.78;b.m.scale.set(w,b.h,w);
+  b.m.material.color.set(E.has(b.r)?0xFFFFFF:M.has(b.r)?0xE8336D:Q.has(b.r)?0xFF8FB1:0xFFE3B8);b.t0=performance.now()+b.r*45})}
+function rs(){const w=stage.clientWidth,h=stage.clientHeight;if(!w)return;R.setSize(w,h);cam.aspect=w/h;cam.updateProjectionMatrix()}
+let drag=null;
+stage.addEventListener('pointerdown',e=>{drag=e.clientX});addEventListener('pointerup',()=>drag=null);
+addEventListener('pointermove',e=>{if(drag!==null){grp.rotation.y+=(e.clientX-drag)*.01;drag=e.clientX}});
+addEventListener('resize',rs);
+(function loop(){requestAnimationFrame(loop);if(stage.style.display!=='block')return;const now=performance.now();
+ bars.forEach(b=>{b.m.position.x+=(b.tx-b.m.position.x)*.12;b.s.position.x=b.m.position.x;const dt=now-(b.t0||0),o=dt>0&&dt<1600?Math.exp(-dt/450)*Math.abs(Math.sin(dt/110))*.9:0;b.m.position.y=b.h/2+o;b.s.position.y=b.h+.55+o});
+ orbs.forEach(m=>{const u=m.userData;u.a+=u.s*.01;m.position.set(Math.cos(u.a)*u.r,u.y+Math.sin(now/600+u.a*3)*.4,Math.sin(u.a)*u.r)});
+ if(drag===null){if(tab==='home')grp.rotation.y+=.005;else grp.rotation.y*=.96}
+ R.render(sc,cam)})();
+
+/* Diagram kotak-garis (boxplot) animasi */
+function box(t,s){const X=v=>20+(v-t.min)/(t.R||1)*260,L=(a,b,y,c,w)=>`<line x1="${X(a)}" y1="${y}" x2="${X(b)}" y2="${y}" stroke="${c}" stroke-width="${w}" stroke-linecap="round"/>`;
+ let g=`<line x1="14" y1="86" x2="286" y2="86" stroke="#7A1F33" stroke-width="2"/>`;
+ t.s.forEach((v,i)=>g+=`<circle class="in" style="animation-delay:${i*40}ms" cx="${X(v)}" cy="86" r="5" fill="${s>=1?'#FF8FB1':'#FFB3C7'}" stroke="#7A1F33" stroke-width="1.5"/>`);
+ if(s>=3){g+=`<g class="in">${L(t.min,t.q1,50,'#7A1F33',2)}${L(t.q3,t.max,50,'#7A1F33',2)}<rect x="${X(t.q1)}" y="34" width="${X(t.q3)-X(t.q1)}" height="32" rx="6" fill="#FFB3C7" stroke="#7A1F33" stroke-width="2"/></g>`}
+ if(s>=2)g+=`<line class="in" x1="${X(t.q2)}" y1="30" x2="${X(t.q2)}" y2="70" stroke="#E8336D" stroke-width="4" stroke-linecap="round"/>`;
+ if(s>=4)g+=`<g class="in"><line x1="${X(t.min)}" y1="14" x2="${X(t.max)}" y2="14" stroke="#E8336D" stroke-width="2.5"/><line x1="${X(t.min)}" y1="9" x2="${X(t.min)}" y2="19" stroke="#E8336D" stroke-width="2.5"/><line x1="${X(t.max)}" y1="9" x2="${X(t.max)}" y2="19" stroke="#E8336D" stroke-width="2.5"/><text x="150" y="9">Jangkauan R = ${t.R}</text></g>`;
+ const lb=[[t.min,'min'],...(s>=3?[[t.q1,'Q1']]:[]),...(s>=2?[[t.q2,'Q2']]:[]),...(s>=3?[[t.q3,'Q3']]:[]),[t.max,'maks']];
+ lb.forEach(([v,n])=>g+=`<text x="${X(v)}" y="102">${n} ${f(v)}</text>`);
+ return`<svg class="diag" viewBox="0 0 300 110" role="img" aria-label="Diagram kotak garis">${g}</svg>`}
+
+/* Navigasi */
+const TABS=[['home','Beranda'],['materi','Materi'],['latih','Latihan'],['lit','Literasi']];
+function go(t){tab=t;Z=null;$('#nav').innerHTML=TABS.map(([k,l])=>`<button class="${k===t?'on':''}" onclick="go('${k}')">${l}</button>`).join('');
+ stage.style.display=t==='home'?'block':'none';rs();
+ if(t==='home'){setData([9,5,12,7,4,10,6,11,8]);scene(4);home()}
+ if(t==='materi')mat(0,false,'def');if(t==='latih')menuL();if(t==='lit')menuLit();scrollTo(0,0)}
+function masuk(){const k=$('#nama').value.trim();if(k.length<2){$('#lerr').textContent='Tulis namamu dulu ya, minimal 2 huruf.';return}
+ user=k[0].toUpperCase()+k.slice(1);try{localStorage.setItem('sebaran:last',user)}catch(e){}ld();$('#login').style.display='none';musik(true);go('home')}
+function keluar(){if(on)musik();user=null;P={ok:0,tot:0,lit:null};$('#login').style.display='flex'}
+function home(){say('Halo '+user+'! Ayo belajar sebaran data bareng aku.');$('#view').innerHTML=`<h1>Halo, ${user}!</h1><p>Yuk belajar jangkauan dan kuartil lewat balok 3D yang bisa kamu putar.</p>
+<div class="card"><h3>Perjalananmu</h3><p style="margin:0">Soal latihan benar: <b>${P.ok}</b> dari <b>${P.tot}</b><br>Kuis literasi terbaik: <b>${P.lit===null?'belum dikerjakan':P.lit+' dari 6'}</b></p></div>
+<div class="row"><button class="btn" onclick="go('materi')">Mulai belajar</button><button class="btn pk" onclick="go('latih')">Main kuis</button></div>`}
+
+/* Materi: pengertian dan praktik */
+const MT={step:0,even:false};
+const DEF=[['Data','Kumpulan nilai atau informasi yang dikumpulkan, misalnya nilai kuis siswa.'],
+['Data terurut','Data yang disusun dari nilai terkecil ke terbesar. Kuartil selalu dicari dari data yang sudah urut.'],
+['Jangkauan (R)','Selisih antara nilai data terbesar dan nilai data terkecil.','R = nilai maksimum − nilai minimum','Data 4 sampai 12: R = 12 − 4 = 8'],
+['Median (Q2)','Nilai tengah data terurut. Data ganjil: satu nilai di tengah. Data genap: rata-rata dua nilai tengah.','Q2 = nilai tengah data','Data 4 sampai 12: Q2 = 8'],
+['Kuartil','Nilai yang membagi data terurut menjadi empat bagian sama banyak, yaitu Q1, Q2, dan Q3.'],
+['Kuartil bawah (Q1)','Median dari separuh data bagian bawah, tanpa menyertakan median utama.','Q1 = median (4, 5, 6, 7)','Q1 = (5 + 6) ÷ 2 = 5,5'],
+['Kuartil atas (Q3)','Median dari separuh data bagian atas, tanpa menyertakan median utama.','Q3 = median (9, 10, 11, 12)','Q3 = (10 + 11) ÷ 2 = 10,5'],
+['Rentang antarkuartil','Selisih Q3 dan Q1. Makin kecil nilainya, makin merata data bagian tengah.','Q3 − Q1','10,5 − 5,5 = 5']];
+const JUD=['Lihat datanya','Urutkan data','Cari median (Q2)','Cari Q1 dan Q3','Hitung jangkauan'];
+function mat(s,ev,m){MT.m=m;MT.step=s;MT.even=ev;const sw=`<div class="row" style="margin-bottom:12px"><button class="chip ${m==='def'?'on':''}" onclick="mat(0,${ev},'def')">Pengertian</button><button class="chip ${m==='def'?'':'on'}" onclick="mat(0,${ev},'prak')">Praktik 3D</button></div>`;
+ if(m==='def'){stage.style.display='none';$('#view').innerHTML=sw+'<h2>Pengertian materi</h2><p>Baca dulu, lalu coba praktik 3D. Kamu boleh membacanya lagi kapan saja.</p>'+DEF.map(d=>`<div class="card def"><span class="tag m">${d[0]}</span><p style="margin:8px 0 0">${d[1]}</p>${d[2]?`<div class="fm">${d[2]}<br>${d[3]}</div>`:''}</div>`).join('')+`<button class="btn" onclick="mat(0,${ev},'prak')">Lanjut praktik 3D</button>`;return}
+ stage.style.display='block';rs();const d=ev?[14,5,9,3,12,6,15,8]:[9,5,12,7,4,10,6,11,8],t=st(d);setData(d);scene(s);
+ say(['Yuk, lihat datanya dulu!','Lihat, balok pindah sendiri jadi urut!','Median ada di tengah. Cari balok pink tua!','Q1 dan Q3 itu balok pink muda!','Jangkauan: balok putih tertinggi dikurangi terendah.'][s]);
+ const j=a=>a.map(f).join(', '),tx=[`Data masih acak: <span class="data">${d.join(', ')}</span>.<br>Kuartil hanya bisa dicari jika data sudah urut. Ada ${t.n} data (${t.n%2?'ganjil':'genap'}).`,
+ `Urutkan dari terkecil ke terbesar:<br><span class="data">${j(t.s)}</span>`,
+ t.n%2?`Data ganjil, median ada di tengah. Data ke-${(t.n+1)/2} adalah <span class="tag m">Q2 = ${f(t.q2)}</span>.`:`Data genap, median adalah rata-rata dua data tengah: (${t.s[t.h-1]} + ${t.s[t.h]}) ÷ 2 = <span class="tag m">Q2 = ${f(t.q2)}</span>.`,
+ `Bagi data jadi dua tanpa median utama.<br>Separuh bawah: ${j(t.lo)} → <span class="tag">Q1 = ${f(t.q1)}</span><br>Separuh atas: ${j(t.up)} → <span class="tag">Q3 = ${f(t.q3)}</span>`,
+ `Jangkauan = ${t.max} − ${t.min} = <b>${t.R}</b>.`];
+ $('#view').innerHTML=sw+`<div class="row" style="margin-bottom:10px"><button class="chip ${ev?'':'on'}" onclick="mat(0,false,'prak')">Data ganjil</button><button class="chip ${ev?'on':''}" onclick="mat(0,true,'prak')">Data genap</button></div>
+ <div class="dots">${JUD.map((x,i)=>`<i class="${i<=s?'on':''}"></i>`).join('')}</div>${box(t,s)}
+ <div class="card pop"><h2>Langkah ${s+1}: ${JUD[s]}</h2><p style="margin:0">${tx[s]}</p></div>
+ <div class="row"><button class="ghost" ${s?'':'disabled'} onclick="mat(${s-1},${ev},'prak')">Sebelumnya</button>${s<4?`<button class="btn" onclick="mat(${s+1},${ev},'prak')">Berikutnya</button>`:`<button class="btn" onclick="go('latih')">Main kuis</button>`}<button class="ghost" onclick="mat(0,${ev},'prak')">Ulangi</button></div>`}
+
+/* Mesin kuis: satu soal, dikoreksi, ucapan semangat */
+let Z=null;
+function mk(t,c,w,why,ctx){const o=shuf([c,...w]);return{t,o,a:o.indexOf(c),w:why,ctx}}
+function quiz(o){Z={...o,i:0,sc:0,pick:null,done:false};qz()}
+function qz(){const q=Z.qs[Z.i],n=Z.qs.length;
+ $('#view').innerHTML=`<div class="bar"><b style="width:${Z.i/n*100}%"></b></div><div class="row" style="justify-content:space-between"><h2>${Z.title}</h2><span class="tag">Soal ${Z.i+1} dari ${n}</span></div>${q.ctx?`<div class="card">${q.ctx}</div>`:''}<div class="card pop"><p style="font-weight:700;margin:0 0 6px">${q.t}</p>${q.o.map((x,k)=>`<button class="op" onclick="pk(${k})">${x}</button>`).join('')}<button class="btn" id="chk" disabled onclick="chk()">Periksa jawaban</button></div><div id="fb"></div>`}
+function pk(k){if(Z.done)return;Z.pick=k;document.querySelectorAll('.op').forEach((b,j)=>b.classList.toggle('sel',j===k));$('#chk').disabled=false}
+function chk(){const q=Z.qs[Z.i],ok=Z.pick===q.a;Z.done=true;if(ok)Z.sc++;
+ document.querySelectorAll('.op').forEach((b,j)=>{b.disabled=true;if(j===q.a)b.classList.add('right');else if(j===Z.pick)b.classList.add('wrong')});
+ $('#chk').style.display='none';ok&&confetti();Z.onAns&&Z.onAns(ok);
+ $('#fb').innerHTML=`<div class="card pop ${ok?'gd':'bd'}"><h3>${ok?'Selamat, jawabanmu benar! 🎉':'Tidak boleh menyerah, tetap semangat! 💪'}</h3>${ok?'':`<p>Jawaban yang benar: <b>${q.o[q.a]}</b></p>`}<p>${q.w}</p><button class="btn" onclick="nx()">${Z.i+1<Z.qs.length?'Soal berikutnya':'Lihat hasil'}</button></div>`;
+ $('#fb').scrollIntoView({behavior:'smooth',block:'nearest'})}
+function nx(){Z.i++;Z.pick=null;Z.done=false;if(Z.i<Z.qs.length){qz();scrollTo(0,0)}else fin()}
+function fin(){const n=Z.qs.length,s=Z.sc,r=s===n?3:s>=n*.6?2:1;Z.onEnd&&Z.onEnd(s);
+ $('#view').innerHTML=`<div class="card pop" style="text-align:center"><h2>Hasilmu: ${s} dari ${n}</h2><div class="stars">${'★'.repeat(r)}${'☆'.repeat(3-r)}</div><p>${s===n?'Luar biasa! Kamu hebat sekali! 🎉':'Bagus sekali sudah mencoba. Tidak boleh menyerah, coba lagi pasti lebih baik! 💪'}</p><button class="btn" onclick="${Z.again}">Main lagi</button></div>`;s===n&&confetti();scrollTo(0,0)}
+
+/* Latihan: 5 soal per ronde */
+const STORY=['Waktu lari 100 m (detik) sekelompok siswa:','Banyak buku yang dibaca tiap siswa dalam setahun:','Skor kuis harian tiap siswa:'];
+function menuL(){$('#view').innerHTML=`<h2>Latihan kuis</h2><p>Pilih tingkat. Setiap ronde ada 5 soal, dijawab satu per satu.</p><div class="card"><div class="row"><button class="btn" onclick="ronde(0)">Mudah</button><button class="btn" onclick="ronde(1)">Sedang</button><button class="btn" onclick="ronde(2)">Sulit</button></div></div>`}
+function gen(lv){const d=lv===0?rnd(7,2,20).sort((a,b)=>a-b):rnd(lv===1?8:9+(Math.random()*2|0),3,lv===1?40:60),t=st(d),sh=lv===0?d:shuf(d),K=[['jangkauan (R)',t.R],['kuartil bawah (Q1)',t.q1],['median (Q2)',t.q2],['kuartil atas (Q3)',t.q3]],[nm,c]=K[Math.random()*4|0],cc=+c.toFixed(2);
+ const pool=[...new Set([t.R,t.q1,t.q2,t.q3,t.max,t.min,c+1,c-1,c+.5,c-.5,c+2].map(x=>+x.toFixed(2)))].filter(x=>x!==cc&&x>=0),w=shuf(pool).slice(0,3).map(f);
+ const why=`Urutkan: ${t.s.join(', ')}. Q2 = ${f(t.q2)}. Separuh bawah ${t.lo.join(', ')} → Q1 = ${f(t.q1)}. Separuh atas ${t.up.join(', ')} → Q3 = ${f(t.q3)}. R = ${t.max} − ${t.min} = ${t.R}.`;
+ return mk(`Berapakah ${nm} dari data tersebut?`,f(c),w,why,(lv===2?STORY[Math.random()*3|0]+' ':'')+(lv===0?'Data sudah urut: ':'Data belum urut: ')+`<span class="data">${sh.join(', ')}</span>`)}
+function ronde(lv){quiz({title:['Mudah','Sedang','Sulit'][lv],qs:Array.from({length:5},()=>gen(lv)),again:`ronde(${lv})`,onAns:ok=>{P.tot++;if(ok)P.ok++;sv()}})}
+
+/* Literasi: soal membandingkan dua kelompok, satu tahap satu soal (skor 6) */
+const GA=[60,65,70,75,80,85,90,95,100],GB=[70,72,74,75,80,82,84,86,88];
+function menuLit(){$('#view').innerHTML=`<h2>Kuis literasi</h2><div class="card"><p style="margin:0">Dua kelompok siswa mengikuti kuis matematika. Guru ingin tahu kelompok mana yang nilainya lebih merata. Jawab enam soal bertahap, satu per satu.</p></div><button class="btn" onclick="litQ()">Mulai kuis</button>`}
+function litQ(){const a=st(GA),b=st(GB),ctx=`<p style="margin:0"><b>Kelompok A:</b> <span class="data">${GA.join(', ')}</span></p><p style="margin:6px 0 0"><b>Kelompok B:</b> <span class="data">${GB.join(', ')}</span></p>`,ia=a.q3-a.q1,ib=b.q3-b.q1,
+ qs=[mk('Tahap 1. Apa tujuan soal ini?','Membandingkan penyebaran nilai dengan jangkauan dan kuartil',['Mencari nilai rata-rata tertinggi','Menentukan modus kedua kelompok','Mencari siswa paling pandai'],'Guru ingin tahu kelompok mana yang lebih merata, jadi kita membandingkan penyebaran data.',ctx),
+ mk('Tahap 2. Berapakah jangkauan Kelompok A?',String(a.R),['100','20','45'],`Data sudah urut. R = ${a.max} − ${a.min} = ${a.R}.`,ctx),
+ mk('Tahap 3. Tentukan Q1 dan Q3 Kelompok A.',`Q1 = ${f(a.q1)} dan Q3 = ${f(a.q3)}`,['Q1 = 65 dan Q3 = 95','Q1 = 70 dan Q3 = 90',`Q1 = ${f(a.q1)} dan Q3 = 90`],`Q1 = (${a.lo[1]} + ${a.lo[2]}) ÷ 2 = ${f(a.q1)}. Q3 = (${a.up[1]} + ${a.up[2]}) ÷ 2 = ${f(a.q3)}. Median (Q2) = ${a.q2}.`,ctx),
+ mk('Tahap 4. Tentukan jangkauan, Q1, dan Q3 Kelompok B.',`R = ${b.R}; Q1 = ${f(b.q1)}; Q3 = ${f(b.q3)}`,[`R = ${b.R}; Q1 = 72; Q3 = 86`,`R = ${b.max}; Q1 = ${f(b.q1)}; Q3 = ${f(b.q3)}`,`R = ${b.R}; Q1 = 74; Q3 = 84`],`R = ${b.max} − ${b.min} = ${b.R}. Q1 = (${b.lo[1]} + ${b.lo[2]}) ÷ 2 = ${f(b.q1)}. Q3 = (${b.up[1]} + ${b.up[2]}) ÷ 2 = ${f(b.q3)}.`,ctx),
+ mk('Tahap 5. Bagaimana cara membandingkan penyebaran dua kelompok?','Bandingkan jangkauan dan rentang antarkuartil (Q3 − Q1)',['Bandingkan hanya nilai tertinggi','Bandingkan median saja','Bandingkan jumlah siswa'],'Makin kecil jangkauan dan rentang antarkuartil, makin merata datanya.',ctx),
+ mk('Tahap 6. Kelompok mana yang lebih merata?',`Kelompok B, karena jangkauan (${b.R} < ${a.R}) dan rentang antarkuartil (${ib} < ${ia}) lebih kecil`,['Kelompok A, karena jangkauannya lebih besar',`Kelompok A, karena Q3-nya lebih besar (${f(a.q3)} > ${f(b.q3)})`,`Sama saja, karena median keduanya ${a.q2}`],`Jangkauan A = ${a.R} dan B = ${b.R}. Rentang antarkuartil A = ${f(ia)} dan B = ${f(ib)}. Median sama (${a.q2}), jadi penyebaranlah yang membedakan.`,ctx)];
+ quiz({title:'Literasi',qs,again:'litQ()',onEnd:s=>{P.lit=Math.max(P.lit||0,s);sv()}})}
+
+try{const k=localStorage.getItem('sebaran:last');if(k)$('#nama').value=k}catch(e){}
+$('#mc').innerHTML=STU;$('#lmas').innerHTML=STU;rs();go('home');
+</script>
+</body>
+</html>
